@@ -50,7 +50,7 @@ func main() {
 
 // Connects to the MySQL database.
 func connectToDB() (*sql.DB, error) {
-	db, err := sql.Open("mysql", "root:AddPassword@tcp(localhost:3306)/orders")
+	db, err := sql.Open("mysql", "root:password@tcp(localhost:3306)/orders")
 
 	if err != nil {
 		return nil, err
