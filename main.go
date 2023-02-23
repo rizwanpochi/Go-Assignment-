@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -136,8 +137,6 @@ func handleUpdateOrder(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Status Successfully Updated"))
 
 }
-
-// Handle requests for fetching orders based on all the fields of the order in a sorted and filtered way.
 func handleGetOrders(w http.ResponseWriter, r *http.Request) {
 	// Get database connection
 	db, err := connectToDB()
@@ -147,8 +146,22 @@ func handleGetOrders(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	// Parse query parameters
+	params := r.URL.Query()
+	status := params.Get("status")
+	sortBy := params.Get("sort_by")
+
+	// Build SELECT statement with WHERE and ORDER BY clauses based on query parameters
+	stmt := "SELECT id, status, items, total, currency_unit, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') FROM orders"
+	if status != "" {
+		stmt += fmt.Sprintf(" WHERE status = '%s'", status)
+	}
+	if sortBy != "" {
+		stmt += fmt.Sprintf(" ORDER BY %s", sortBy)
+	}
+
 	// Execute SELECT statement
-	rows, err := db.Query("SELECT id, status, items, total, currency_unit, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s'), DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') FROM orders")
+	rows, err := db.Query(stmt)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
